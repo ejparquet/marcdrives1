@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marc Drives — Private Transportation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --gold:       #6B9FFF;
+      --gold-light: #8CB8FF;
+      --gold-dim:   #4A7AE0;
+      --teal:       #1E9E96;
+      --black:      #09090A;
+      --surf:       #282829;
+      --surf2:      #2E2E32;
+      --text:       #EEE9E2;
+      --muted:      #8A837A;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    }
+
+    /* ── NAV ───────────────────────────────── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.75rem 3.5rem;
+      transition: padding .4s ease, background .4s ease, border-color .4s ease;
+      border-bottom: 1px solid transparent;
+    }
+    #nav.scrolled {
+      padding: 1.1rem 3.5rem;
+      background: rgba(9,9,10,.88);
+      backdrop-filter: blur(18px);
+      border-color: rgba(107,159,255,.12);
+    }
+
+    .logo {
+      display: flex; align-items: center;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .logo-img {
+      height: 44px;
+      width: auto;
+      display: block;
+    }
+
+    .nav-list {
+      display: flex; gap: 2.75rem; align-items: center; list-style: none;
+    }
+    .nav-list a {
+      font-size: .68rem; font-weight: 500;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: #fff; text-decoration: none;
+      position: relative;
+      transition: color .22s ease;
+    }
+    .nav-list a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: var(--gold);
+      transition: width .3s cubic-bezier(.4,0,.2,1);
+    }
+    .nav-list a:hover { color: var(--text); }
+    .nav-list a:hover::after { width: 100%; }
+
+    .nav-book {
+      font-size: .64rem !important; font-weight: 500 !important;
+      letter-spacing: .18em !important; text-transform: uppercase !important;
+      color: #fff !important;
+      background: rgba(107,159,255,.18) !important;
+      backdrop-filter: blur(16px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+      border: 1px solid rgba(255,255,255,.22) !important;
+      box-shadow: 0 2px 12px rgba(107,159,255,.15), inset 0 1px 0 rgba(255,255,255,.2) !important;
+      padding: .65rem 1.6rem;
+      border-radius: 9999px;
+      transition: background .2s, box-shadow .2s, transform .15s !important;
+    }
+    .nav-book::after { display: none !important; }
+    .nav-book:hover {
+      background: rgba(107,159,255,.28) !important;
+      box-shadow: 0 4px 20px rgba(107,159,255,.25), inset 0 1px 0 rgba(255,255,255,.25) !important;
+      transform: translateY(-1px);
+    }
+    .nav-book:active { transform: translateY(0) !important; }
+
+    /* ── HERO ──────────────────────────────── */
+    .hero {
+      position: relative; height: 100vh; min-height: 740px;
+      display: flex; align-items: flex-end; overflow: hidden;
+    }
+
+    .hero-atm { display: none; }
+
+    /* Hero vehicle image */
+    .hero-img {
+      position: absolute;
+      left: 0; right: 0;
+      top: -15%; width: 100%; height: 130%;
+      object-fit: cover; object-position: center 60%;
+      opacity: 1;
+      will-change: transform;
+    }
+    .hero-vignette {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to right,  rgba(9,9,10,.92) 0%,  rgba(9,9,10,.72) 35%, rgba(9,9,10,.25) 60%, rgba(9,9,10,.55) 100%),
+        linear-gradient(to top,    rgba(9,9,10,.85) 0%,  rgba(9,9,10,.20) 40%, transparent 65%),
+        linear-gradient(to bottom, rgba(9,9,10,.5)  0%,  transparent 20%);
+    }
+
+    /* Art Deco accent lines (right side) */
+    .hero-deco {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+    .hero-deco::before, .hero-deco::after {
+      content: ''; position: absolute; top: 15%; bottom: 15%;
+    }
+    .hero-deco::before {
+      right: 7%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(107,159,255,.25) 30%, rgba(107,159,255,.25) 70%, transparent);
+    }
+    .hero-deco::after {
+      right: calc(7% + 10px);
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(107,159,255,.09) 30%, rgba(107,159,255,.09) 70%, transparent);
+    }
+
+    .hero-content {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 3.5rem 6.5rem;
+    }
+
+    .eyebrow {
+      display: flex; align-items: center; gap: .9rem; margin-bottom: 1.5rem;
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp .75s ease .25s forwards;
+    }
+    .eyebrow-rule { width: 38px; height: 1px; background: var(--gold); flex-shrink: 0; }
+    .eyebrow-text {
+      font-size: .62rem; font-weight: 500;
+      letter-spacing: .3em; text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .hero-h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(3.2rem, 7vw, 7rem);
+      font-weight: 800; line-height: .95;
+      letter-spacing: -.02em; color: var(--gold);
+      margin-bottom: 1.75rem;
+      opacity: 0; transform: translateY(28px);
+      animation: fadeUp .85s ease .45s forwards;
+    }
+    .hero-h1 em { font-style: normal; color: var(--gold); }
+
+    .hero-p {
+      font-size: 1.25rem; font-weight: 400;
+      line-height: 1.5; letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text); max-width: 560px;
+      margin-bottom: 1rem;
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp .75s ease .65s forwards;
+    }
+    .hero-services {
+      font-size: .65rem; font-weight: 400;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: rgba(238,233,226,.55);
+      line-height: 1.9; max-width: 560px;
+      margin-bottom: 2.5rem;
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp .75s ease .78s forwards;
+    }
+    .hero-services span {
+      display: inline-block;
+      padding: 0 .75rem;
+      border-left: 1px solid rgba(107,159,255,.35);
+    }
+    .hero-services span:first-child { padding-left: 0; border-left: none; }
+
+    .hero-btns {
+      display: flex; gap: 1.25rem; align-items: center;
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp .75s ease .85s forwards;
+    }
+
+    .btn-gold {
+      display: inline-flex; align-items: center; gap: .7rem;
+      padding: .95rem 2rem;
+      background: rgba(107,159,255,.22);
+      backdrop-filter: blur(20px) saturate(200%);
+      -webkit-backdrop-filter: blur(20px) saturate(200%);
+      border: 1px solid rgba(255,255,255,.25);
+      box-shadow:
+        0 4px 24px rgba(107,159,255,.2),
+        inset 0 1px 0 rgba(255,255,255,.25),
+        inset 0 -1px 0 rgba(0,0,0,.1);
+      color: #fff;
+      font-size: .65rem; font-weight: 600;
+      letter-spacing: .18em; text-transform: uppercase;
+      text-decoration: none; border-radius: 9999px;
+      transition: background .2s, box-shadow .2s, transform .15s;
+    }
+    .btn-gold:hover {
+      background: rgba(107,159,255,.32);
+      box-shadow:
+        0 6px 32px rgba(107,159,255,.3),
+        inset 0 1px 0 rgba(255,255,255,.3),
+        inset 0 -1px 0 rgba(0,0,0,.1);
+      transform: translateY(-2px);
+    }
+    .btn-gold:active { transform: translateY(0); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: .7rem;
+      padding: .95rem 2rem;
+      background: rgba(255,255,255,.07);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow:
+        0 4px 16px rgba(0,0,0,.15),
+        inset 0 1px 0 rgba(255,255,255,.12);
+      color: #fff;
+      font-size: .65rem; font-weight: 500;
+      letter-spacing: .18em; text-transform: uppercase;
+      text-decoration: none; border-radius: 9999px;
+      transition: background .2s, box-shadow .2s, border-color .2s, transform .15s;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,.13);
+      border-color: rgba(255,255,255,.28);
+      box-shadow:
+        0 6px 24px rgba(0,0,0,.2),
+        inset 0 1px 0 rgba(255,255,255,.2);
+      transform: translateY(-2px);
+    }
+    .btn-ghost:active { transform: translateY(0); }
+
+    /* Scroll indicator */
+    .scroll-ind {
+      position: absolute; bottom: 2.5rem; right: 3.5rem;
+      display: flex; flex-direction: column; align-items: center; gap: .6rem;
+      opacity: 0; animation: fadeIn 1s ease 1.6s forwards;
+    }
+    .scroll-label {
+      font-size: .55rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--muted); writing-mode: vertical-rl;
+    }
+    .scroll-bar {
+      width: 1px; height: 56px;
+      background: linear-gradient(to bottom, rgba(107,159,255,.7), transparent);
+      animation: scrollPulse 2.2s ease infinite;
+    }
+
+    /* ── TICKER ─────────────────────────────── */
+    .ticker-wrap {
+      overflow: hidden;
+      background: var(--surf);
+      border-top: 1px solid rgba(107,159,255,.12);
+      border-bottom: 1px solid rgba(107,159,255,.12);
+      padding: .8rem 0;
+    }
+    .ticker-track {
+      display: flex; gap: 3.5rem; width: max-content;
+      animation: ticker 22s linear infinite;
+    }
+    .ticker-item {
+      display: flex; align-items: center; gap: .85rem;
+      font-size: .6rem; font-weight: 500;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+    }
+    .t-dot { width: 4px; height: 4px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
+
+    /* ── SERVICES ───────────────────────────── */
+    .container { max-width: 1440px; margin: 0 auto; padding: 0 3.5rem; }
+    .section-pad { padding-top: 7.5rem; padding-bottom: 7.5rem; }
+
+    .sec-eyebrow {
+      display: flex; align-items: center; gap: .9rem; margin-bottom: 1.25rem;
+    }
+    .sec-rule { width: 28px; height: 1px; background: var(--gold); }
+    .sec-label {
+      font-size: .6rem; font-weight: 500;
+      letter-spacing: .3em; text-transform: uppercase; color: var(--gold);
+    }
+    .sec-h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 700; line-height: 1.1;
+      letter-spacing: -.025em; color: var(--text);
+    }
+    .sec-h2 em { font-style: normal; color: var(--gold); }
+
+    .svc-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 4rem;
+      border: 1px solid rgba(107,159,255,.18);
+    }
+    .svc-card {
+      background: var(--surf); padding: 3rem 2.5rem;
+      position: relative; overflow: hidden;
+      transition: background .3s;
+      border-right: 1px solid rgba(107,159,255,.18);
+      border-bottom: 1px solid rgba(107,159,255,.18);
+    }
+    .svc-card:nth-child(3n)   { border-right: none; }
+    .svc-card:nth-child(n+4)  { border-bottom: none; }
+    .svc-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(140deg, rgba(107,159,255,.07) 0%, transparent 55%);
+      opacity: 0; transition: opacity .3s;
+    }
+    .svc-card::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 100%; height: 2px;
+      background: var(--gold);
+      transition: right .42s cubic-bezier(.4,0,.2,1);
+    }
+    .svc-card:hover::before { opacity: 1; }
+    .svc-card:hover::after  { right: 0; }
+
+    .svc-num {
+      font-size: .6rem; font-weight: 600;
+      letter-spacing: .25em; color: var(--gold); opacity: .75;
+      margin-bottom: 2rem;
+    }
+    .svc-icon {
+      width: 44px; height: 44px; color: var(--gold); opacity: .9;
+      margin-bottom: 1.4rem;
+    }
+    .svc-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--text); margin-bottom: .85rem;
+      letter-spacing: -.01em;
+    }
+    .svc-desc {
+      font-size: .78rem; font-weight: 400;
+      line-height: 1.85; color: rgba(238,233,226,.62);
+    }
+
+    /* ── STATS ──────────────────────────────── */
+    .stats-band {
+      background: var(--surf2);
+      border-top: 1px solid rgba(107,159,255,.18);
+      border-bottom: 1px solid rgba(107,159,255,.18);
+      padding: 5rem 3.5rem;
+    }
+    .stats-inner {
+      max-width: 1440px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4,1fr);
+    }
+    .stat {
+      padding: 2rem 3rem; text-align: center;
+      border-right: 1px solid rgba(107,159,255,.15);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-n {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 3.8rem; font-weight: 700;
+      line-height: 1; color: var(--gold); margin-bottom: .55rem;
+      letter-spacing: -.03em;
+    }
+    .stat-l {
+      font-size: .6rem; font-weight: 500;
+      letter-spacing: .2em; text-transform: uppercase; color: var(--text);
+      opacity: .55;
+    }
+
+    /* ── FLEET ──────────────────────────────── */
+    .fleet-wrap {
+      background: linear-gradient(180deg, var(--black) 0%, var(--surf) 50%, var(--black) 100%);
+      padding: 7.5rem 0; position: relative; overflow: hidden;
+    }
+    .fleet-wrap::before {
+      content: ''; position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 900px; height: 900px;
+      background: radial-gradient(ellipse, rgba(107,159,255,.05) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .fleet-grid {
+      display: grid; grid-template-columns: 1fr;
+      gap: 0;
+      margin-top: 4rem;
+      border: 1px solid rgba(107,159,255,.18);
+    }
+    .fleet-card {
+      position: relative; overflow: hidden;
+      aspect-ratio: 21/9;
+      background: var(--surf2);
+    }
+    .fleet-specs {
+      display: flex; flex-wrap: wrap; gap: .5rem 2.5rem;
+      margin-top: 1.1rem;
+    }
+    .fleet-spec {
+      font-size: .7rem; font-weight: 400; letter-spacing: .04em;
+      color: rgba(238,233,226,.72);
+    }
+    .fleet-spec strong { color: var(--text); font-weight: 600; }
+
+    /* ── RATES & POLICIES ───────────────────── */
+    .rates-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; margin-top: 4rem;
+      border: 1px solid rgba(107,159,255,.18);
+    }
+    .rates-col { background: var(--surf); padding: 3rem 2.5rem; }
+    .rates-col:first-child { border-right: 1px solid rgba(107,159,255,.18); }
+    .rate-row {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 1.5rem;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid rgba(107,159,255,.12);
+    }
+    .rate-row:last-child { border-bottom: none; }
+    .rate-name { font-size: .85rem; font-weight: 600; color: var(--text); }
+    .rate-note { font-size: .7rem; color: var(--muted); margin-top: .25rem; line-height: 1.6; }
+    .rate-price {
+      font-size: 1.6rem; font-weight: 700; color: var(--gold);
+      letter-spacing: -.02em; white-space: nowrap;
+    }
+    .rate-price small { font-size: .7rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+    .policy-list { list-style: none; display: flex; flex-direction: column; gap: 1.1rem; }
+    .policy-list li {
+      font-size: .76rem; line-height: 1.8; color: rgba(238,233,226,.62);
+      padding-left: 1.1rem; position: relative;
+    }
+    .policy-list li::before {
+      content: ''; position: absolute; left: 0; top: .7em;
+      width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+    }
+    .policy-list strong { color: var(--text); font-weight: 600; }
+    /* ── RESERVATION FORM ───────────────────── */
+    .res-form {
+      background: var(--surf2);
+      border: 1px solid rgba(107,159,255,.18);
+      border-radius: 18px;
+      padding: 2.5rem;
+      box-shadow:
+        0 1px 2px rgba(0,0,0,.25),
+        0 12px 32px -8px rgba(0,0,0,.45),
+        0 24px 64px -24px rgba(107,159,255,.18);
+    }
+    .res-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.1rem 1.25rem;
+    }
+    .res-field { display: flex; flex-direction: column; gap: .5rem; }
+    .res-full { grid-column: 1 / -1; }
+    .res-label {
+      font-size: .58rem; font-weight: 600;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .res-label span { color: var(--gold); }
+    .res-input {
+      width: 100%;
+      font-family: inherit; font-size: .85rem; color: var(--text);
+      background: rgba(9,9,10,.55);
+      border: 1px solid rgba(107,159,255,.18);
+      border-radius: 10px;
+      padding: .85rem 1rem;
+      color-scheme: dark;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .res-input::placeholder { color: rgba(138,131,122,.7); }
+    .res-input:hover { border-color: rgba(107,159,255,.32); }
+    .res-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      background: rgba(9,9,10,.75);
+      box-shadow: 0 0 0 3px rgba(107,159,255,.18);
+    }
+    textarea.res-input { resize: vertical; min-height: 120px; line-height: 1.6; }
+    .res-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1.5rem; flex-wrap: wrap; margin-top: 1.75rem;
+    }
+    .res-note { font-size: .7rem; color: var(--muted); line-height: 1.6; max-width: 280px; }
+    button.btn-gold { font-family: inherit; cursor: pointer; }
+    button.btn-gold:disabled { opacity: .6; cursor: progress; transform: none; }
+    .btn-gold:focus-visible, .btn-ghost:focus-visible, .cta-email:focus-visible, .cta-phone:focus-visible {
+      outline: 2px solid var(--gold); outline-offset: 3px;
+    }
+    .res-status {
+      margin-top: 1.25rem; font-size: .75rem; line-height: 1.6;
+      color: var(--gold); min-height: 1.2em;
+    }
+    .cta-left .cta-contact { text-align: left; margin-top: 2.75rem; }
+    .cta-left .cta-contact-label { margin-bottom: .5rem; }
+
+    .cta-email {
+      display: inline-block; margin-top: .9rem;
+      font-size: .78rem; color: var(--text); text-decoration: none;
+      border-bottom: 1px solid rgba(107,159,255,.35);
+      transition: color .2s, border-color .2s;
+    }
+    .cta-email:hover { color: var(--gold); border-color: var(--gold); }
+    .fleet-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: saturate(.7) brightness(.8);
+      transform: scale(1.02);
+      transition: transform .65s cubic-bezier(.4,0,.2,1), filter .4s;
+    }
+    .fleet-card:hover img {
+      transform: scale(1.06);
+      filter: saturate(.85) brightness(.9);
+    }
+    .fleet-card-info {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(9,9,10,.96) 0%, rgba(9,9,10,.55) 45%, rgba(9,9,10,.15) 100%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 2rem;
+    }
+    .fleet-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.3rem; font-weight: 600; color: var(--text);
+      margin-bottom: .35rem; letter-spacing: -.02em;
+    }
+    .fleet-cap {
+      font-size: .58rem; font-weight: 500; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--gold);
+    }
+
+    /* ── EXPERIENCE (WHY US) ───────────────── */
+    .exp-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6rem; align-items: center;
+    }
+    .exp-visual { position: relative; }
+    .exp-img {
+      width: 100%; aspect-ratio: 4/5;
+      object-fit: cover;
+      display: block;
+    }
+    .exp-frame {
+      position: absolute; top: -1.4rem; left: -1.4rem;
+      right: 1.4rem; bottom: 1.4rem;
+      border: 1px solid rgba(107,159,255,.2);
+      pointer-events: none;
+    }
+    .exp-badge {
+      position: absolute; bottom: -1.4rem; right: -1.4rem;
+      width: 116px; height: 116px;
+      background: var(--gold);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .exp-badge-n {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 2rem; font-weight: 700;
+      color: var(--black); line-height: 1;
+    }
+    .exp-badge-l {
+      font-size: .5rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--black); opacity: .68; text-align: center;
+    }
+
+    .features { display: flex; flex-direction: column; gap: 1.4rem; margin-top: 2.5rem; }
+    .feat {
+      display: flex; gap: 1.2rem; align-items: flex-start;
+    }
+    .feat-check {
+      width: 20px; height: 20px; flex-shrink: 0; margin-top: .1rem;
+      border: 1px solid rgba(107,159,255,.4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .feat-check svg { width: 10px; height: 10px; color: var(--gold); }
+    .feat-body { font-size: .8rem; font-weight: 400; line-height: 1.7; color: var(--muted); }
+    .feat-body strong { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: .15rem; }
+
+    /* ── TESTIMONIALS ───────────────────────── */
+    .testi-section {
+      background: var(--surf);
+      border-top: 1px solid rgba(107,159,255,.14);
+      padding: 6rem 0;
+    }
+    .testi-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 0;
+      margin-top: 4rem;
+      border: 1px solid rgba(107,159,255,.18);
+    }
+    .testi-card { border-right: 1px solid rgba(107,159,255,.18); }
+    .testi-card:last-child { border-right: none; }
+    .testi-card {
+      background: var(--surf2); padding: 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    .testi-stars {
+      display: flex; gap: .25rem; margin-bottom: 1.5rem;
+    }
+    .testi-stars svg { width: 14px; height: 14px; color: var(--gold); }
+    .testi-quote {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: .88rem; font-weight: 400;
+      line-height: 1.75;
+      color: var(--text); margin-bottom: 1.75rem;
+    }
+    .testi-author {
+      display: flex; align-items: center; gap: .9rem;
+    }
+    .testi-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surf); border: 1px solid rgba(107,159,255,.25);
+      flex-shrink: 0; overflow: hidden;
+    }
+    .testi-avatar img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.3); }
+    .testi-name { font-size: .75rem; font-weight: 500; color: var(--text); }
+    .testi-loc { font-size: .65rem; font-weight: 300; color: var(--muted); margin-top: .15rem; }
+
+    /* ── BOOKING CTA ────────────────────────── */
+    .cta-section {
+      position: relative; padding: 9rem 3.5rem;
+      overflow: hidden; background: var(--surf);
+      border-top: 1px solid rgba(107,159,255,.1);
+    }
+    .cta-section::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 90% at 50% 110%, rgba(107,159,255,.09) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .cta-inner {
+      max-width: 1440px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1.25fr;
+      gap: 5rem; align-items: center;
+    }
+    .cta-h {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 700; line-height: 1.1;
+      letter-spacing: -.025em; color: var(--text);
+    }
+    .cta-h em { font-style: normal; color: var(--gold); }
+    .cta-sub {
+      margin-top: 1.25rem;
+      font-size: .82rem; font-weight: 300;
+      line-height: 1.85; color: var(--muted);
+      max-width: 500px;
+    }
+    .cta-btns { display: flex; gap: 1rem; margin-top: 2.75rem; }
+
+    .cta-contact { flex-shrink: 0; text-align: center; }
+    .cta-contact-label {
+      font-size: .58rem; letter-spacing: .26em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: .65rem;
+    }
+    .cta-phone {
+      display: flex; align-items: center; gap: .65rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.6rem; font-weight: 600;
+      color: var(--gold); text-decoration: none;
+      transition: opacity .2s;
+      white-space: nowrap;
+      letter-spacing: -.02em;
+    }
+    .cta-phone:hover { opacity: .75; }
+    .cta-phone-sub {
+      font-size: .58rem; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted); margin-top: .45rem;
+    }
+
+    /* ── FOOTER ─────────────────────────────── */
+    footer {
+      background: var(--black);
+      border-top: 1px solid rgba(107,159,255,.1);
+      padding: 2.75rem 3.5rem;
+    }
+    .footer-inner {
+      max-width: 1440px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-logo { display: flex; align-items: center; }
+    .footer-copy { font-size: .65rem; letter-spacing: .1em; color: var(--muted); opacity: .45; }
+    .footer-links { display: flex; gap: 2rem; list-style: none; }
+    .footer-links a {
+      font-size: .6rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; opacity: .6;
+      transition: opacity .2s, color .2s;
+    }
+    .footer-links a:hover { opacity: 1; color: var(--gold); }
+
+    /* ── REVEAL ANIMATIONS ───────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(22px);
+      transition: opacity .72s ease, transform .72s ease;
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .08s; }
+    .d2 { transition-delay: .18s; }
+    .d3 { transition-delay: .28s; }
+    .d4 { transition-delay: .38s; }
+
+    /* ── KEYFRAMES ───────────────────────────── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn  { to { opacity: 1; } }
+    @keyframes ticker  {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: .55; }
+      50%       { opacity: 1; }
+    }
+    /* ── MOBILE MENU TOGGLE ──────────────────── */
+    .nav-toggle {
+      display: none;
+      position: relative; z-index: 2;
+      width: 44px; height: 44px;
+      border-radius: 9999px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .nav-toggle:hover { background: rgba(255,255,255,.13); }
+    .nav-toggle:active { transform: scale(.94); }
+    .nav-toggle:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .nav-toggle span {
+      position: absolute; left: 13px; right: 13px; height: 1.5px;
+      background: #fff; border-radius: 2px;
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    .nav-toggle span:first-child { transform: translateY(-4px); }
+    .nav-toggle span:last-child  { transform: translateY(4px); }
+    #nav.open .nav-toggle span:first-child { transform: rotate(45deg); }
+    #nav.open .nav-toggle span:last-child  { transform: rotate(-45deg); }
+    .nav-list a:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+
+    /* ── RESPONSIVE: TABLET ──────────────────── */
+    @media (max-width: 1100px) {
+      #nav, #nav.scrolled { padding-left: 2rem; padding-right: 2rem; }
+      .nav-list { gap: 1.75rem; }
+      .container { padding: 0 2rem; }
+      .hero-content { padding: 0 2rem 5.5rem; }
+      .scroll-ind { right: 2rem; }
+
+      .svc-grid { grid-template-columns: 1fr 1fr; }
+      .svc-card,
+      .svc-card:nth-child(3n),
+      .svc-card:nth-child(n+4) { border-right: none; border-bottom: 1px solid rgba(107,159,255,.18); }
+      .svc-card:nth-child(odd) { border-right: 1px solid rgba(107,159,255,.18); }
+      .svc-card:nth-last-child(-n+2) { border-bottom: none; }
+
+      .stats-band { padding: 3.5rem 2rem; }
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .stat { padding: 2rem 1.5rem; border-right: none; }
+      .stat:nth-child(odd) { border-right: 1px solid rgba(107,159,255,.15); }
+      .stat:nth-child(-n+2) { border-bottom: 1px solid rgba(107,159,255,.15); }
+
+      .fleet-card { aspect-ratio: 16/10; }
+
+      .exp-grid { gap: 4rem; }
+
+      .testi-grid { grid-template-columns: 1fr; }
+      .testi-card { border-right: none; border-bottom: 1px solid rgba(107,159,255,.18); }
+      .testi-card:last-child { border-bottom: none; }
+
+      .rates-grid { grid-template-columns: 1fr; }
+      .rates-col:first-child { border-right: none; border-bottom: 1px solid rgba(107,159,255,.18); }
+
+      .cta-section { padding: 6rem 2rem; }
+      .cta-inner { grid-template-columns: 1fr; gap: 3.5rem; }
+      .cta-sub { max-width: 560px; }
+
+      footer { padding: 2.5rem 2rem; }
+    }
+
+    /* ── RESPONSIVE: MOBILE MENU ─────────────── */
+    @media (max-width: 900px) {
+      .nav-toggle { display: inline-block; }
+      .nav-list {
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 100vh; height: 100dvh;
+        flex-direction: column; justify-content: center; align-items: center;
+        gap: 2.25rem;
+        background: rgba(9,9,10,.97);
+        opacity: 0; pointer-events: none;
+        transform: translateY(-12px);
+        transition: opacity .3s ease, transform .45s cubic-bezier(.34,1.56,.64,1);
+      }
+      #nav.open .nav-list { opacity: 1; pointer-events: auto; transform: translateY(0); }
+      .nav-list a { font-size: .9rem; letter-spacing: .22em; }
+      .nav-book { font-size: .8rem !important; padding: .95rem 2.2rem; }
+      .logo { position: relative; z-index: 2; }
+      body.menu-open { overflow: hidden; }
+
+      .exp-grid { grid-template-columns: 1fr; }
+      .exp-visual { max-width: 560px; }
+    }
+
+    /* ── RESPONSIVE: PHONE ───────────────────── */
+    @media (max-width: 640px) {
+      #nav, #nav.scrolled { padding: 1rem 1.25rem; }
+      .logo-img { height: 38px; }
+      .container { padding: 0 1.25rem; }
+      .section-pad { padding-top: 4.5rem; padding-bottom: 4.5rem; }
+
+      .hero { height: auto; min-height: 100vh; min-height: 100svh; }
+      .hero-content { padding: 7rem 1.25rem 3.5rem; }
+      .hero-h1 { font-size: clamp(2.8rem, 14vw, 4rem); margin-bottom: 1.25rem; }
+      .hero-p { font-size: 1rem; letter-spacing: .04em; }
+      .hero-services { font-size: .6rem; margin-bottom: 2rem; }
+      .hero-services span,
+      .hero-services span:first-child { display: block; padding: 0; border-left: none; }
+      .hero-btns { flex-wrap: wrap; gap: .75rem; }
+      .hero-btns a { flex: 1 1 auto; justify-content: center; }
+      .scroll-ind, .hero-deco { display: none; }
+      .hero { background: var(--black); }
+      .hero-img { top: 0; height: 46%; object-position: 55% center; }
+      .hero-vignette {
+        background: linear-gradient(to bottom,
+          rgba(9,9,10,.5) 0%, rgba(9,9,10,0) 16%,
+          rgba(9,9,10,0) 30%, var(--black) 43%);
+      }
+
+      .svc-grid { grid-template-columns: 1fr; margin-top: 2.5rem; }
+      .svc-card,
+      .svc-card:nth-child(odd),
+      .svc-card:nth-last-child(-n+2) { border-right: none; border-bottom: 1px solid rgba(107,159,255,.18); }
+      .svc-card:last-child { border-bottom: none; }
+      .svc-card { padding: 2.25rem 1.5rem; }
+      .svc-num { margin-bottom: 1.25rem; }
+
+      .stats-band { padding: 2.5rem 1.25rem; }
+      .stat { padding: 1.5rem .75rem; }
+      .stat-n { font-size: 2.4rem; }
+      .stat-l { font-size: .55rem; letter-spacing: .14em; }
+
+      .fleet-wrap { padding: 4.5rem 0; }
+      .fleet-grid { margin-top: 2.5rem; }
+      .fleet-card { aspect-ratio: 4/5; }
+      .fleet-card img { object-position: 60% center; }
+      .fleet-card-info { padding: 1.5rem; }
+      .fleet-cap { line-height: 1.7; }
+      .fleet-specs { flex-direction: column; gap: .35rem; }
+
+      .exp-grid { gap: 3.5rem; }
+      .exp-visual { margin: .75rem .75rem 0; }
+      .exp-img { aspect-ratio: 4/3; }
+      .exp-frame { top: -.75rem; left: -.75rem; right: .75rem; bottom: .75rem; }
+      .exp-badge { width: 88px; height: 88px; bottom: -.75rem; right: -.75rem; }
+      .exp-badge-n { font-size: 1.6rem; }
+
+      .testi-section { padding: 4.5rem 0; }
+      .testi-grid { margin-top: 2.5rem; }
+      .testi-card { padding: 2rem 1.5rem; }
+
+      .rates-grid { margin-top: 2.5rem; }
+      .rates-col { padding: 2rem 1.5rem; }
+      .rate-price { font-size: 1.35rem; }
+
+      .cta-section { padding: 4.5rem 1.25rem; }
+      .cta-inner { gap: 2.5rem; }
+      .cta-left .cta-contact { margin-top: 2rem; }
+      .cta-phone { font-size: 1.4rem; }
+      .res-form { padding: 1.5rem 1.25rem; border-radius: 14px; }
+      .res-grid { grid-template-columns: 1fr; }
+      .res-input { font-size: 16px; }
+      .res-foot { flex-direction: column-reverse; align-items: stretch; }
+      .res-foot .btn-gold { justify-content: center; }
+      .res-note { max-width: none; text-align: center; }
+
+      footer { padding: 2.5rem 1.25rem; }
+      .footer-inner { flex-direction: column; gap: 1.25rem; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; gap: 1rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav id="nav">
+  <a class="logo" href="#"><img src="Assets/Logo.png" alt="Marc Drives" class="logo-img" /></a>
+  <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-list">
+    <span></span><span></span>
+  </button>
+  <ul class="nav-list" id="nav-list">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#fleet">Fleet</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#rates">Rates</a></li>
+    <li><a href="#book" class="nav-book">Book a Ride</a></li>
+  </ul>
+</nav>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section class="hero">
+  <div class="hero-atm"></div>
+
+  <img class="hero-img"
+       src="Assets/hero-suburban.jpg"
+       alt="Marc Drives black Chevrolet Suburban" />
+  <div class="hero-vignette"></div>
+  <div class="hero-deco"></div>
+
+  <div class="hero-content">
+    <div class="eyebrow">
+      <span class="eyebrow-rule"></span>
+      <span class="eyebrow-text">Welcome To</span>
+    </div>
+    <h1 class="hero-h1">
+      <em>MARC DRIVES</em>
+    </h1>
+    <p class="hero-p">
+      Your Private Transportation Destination
+    </p>
+    <p class="hero-services">
+      <span>Corporate / VIP Transportation</span><span>Airport &amp; Cruise Transfers</span><span>Black Luxury SUV — Accommodates up to 6 Passengers</span><span>Special Events</span>
+    </p>
+    <div class="hero-btns">
+      <a href="#book" class="btn-gold">
+        Reserve Your Ride
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <a href="#fleet" class="btn-ghost">View Fleet</a>
+    </div>
+  </div>
+
+  <div class="scroll-ind">
+    <span class="scroll-label">Scroll</span>
+    <span class="scroll-bar"></span>
+  </div>
+</section>
+
+<!-- ══════════════ TICKER ══════════════ -->
+<div class="ticker-wrap">
+  <div class="ticker-track">
+    <span class="ticker-item"><span class="t-dot"></span>Airport &amp; Cruise Transfers</span>
+    <span class="ticker-item"><span class="t-dot"></span>Corporate / VIP</span>
+    <span class="ticker-item"><span class="t-dot"></span>Special Events</span>
+    <span class="ticker-item"><span class="t-dot"></span>Port of Galveston</span>
+    <span class="ticker-item"><span class="t-dot"></span>Louisiana Casino Day Trips</span>
+    <span class="ticker-item"><span class="t-dot"></span>Homecoming &amp; Prom</span>
+    <span class="ticker-item"><span class="t-dot"></span>Chevrolet Suburban</span>
+    <span class="ticker-item"><span class="t-dot"></span>Hourly Service</span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item"><span class="t-dot"></span>Airport &amp; Cruise Transfers</span>
+    <span class="ticker-item"><span class="t-dot"></span>Corporate / VIP</span>
+    <span class="ticker-item"><span class="t-dot"></span>Special Events</span>
+    <span class="ticker-item"><span class="t-dot"></span>Port of Galveston</span>
+    <span class="ticker-item"><span class="t-dot"></span>Louisiana Casino Day Trips</span>
+    <span class="ticker-item"><span class="t-dot"></span>Homecoming &amp; Prom</span>
+    <span class="ticker-item"><span class="t-dot"></span>Chevrolet Suburban</span>
+    <span class="ticker-item"><span class="t-dot"></span>Hourly Service</span>
+  </div>
+</div>
+
+<!-- ══════════════ SERVICES ══════════════ -->
+<section id="services">
+  <div class="container section-pad">
+    <div class="sec-eyebrow reveal">
+      <span class="sec-rule"></span>
+      <span class="sec-label">What We Offer</span>
+    </div>
+    <h2 class="sec-h2 reveal">Every Occasion,<br><em>Perfectly Handled</em></h2>
+
+    <div class="svc-grid">
+
+      <div class="svc-card reveal d1">
+        <div class="svc-num">01</div>
+        <svg class="svc-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="7" y="14" width="34" height="24" rx="1"/>
+          <path d="M7 20h34M18 14V9M30 14V9M17 29h6M27 29h4"/>
+        </svg>
+        <h3 class="svc-name">Corporate / VIP Transportation</h3>
+        <p class="svc-desc">First class, reliable and professional private transportation for executives, clients and VIP guests.</p>
+      </div>
+
+      <div class="svc-card reveal d2">
+        <div class="svc-num">02</div>
+        <svg class="svc-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M6 32L4 36v4h40v-4l-2-4"/>
+          <path d="M6 32h36M10 32l4-16h20l4 16"/>
+          <path d="M16 22v8M24 22v8M32 22v8"/>
+        </svg>
+        <h3 class="svc-name">Airport &amp; Cruise Transfers</h3>
+        <p class="svc-desc">Rides to and from the airport and the cruise terminal — leave the worries of driving, parking and luggage to us.</p>
+      </div>
+
+      <div class="svc-card reveal d3">
+        <div class="svc-num">03</div>
+        <svg class="svc-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="24" cy="18" r="8"/>
+          <path d="M8 40c0-8.837 7.163-16 16-16s16 7.163 16 16"/>
+          <path d="M30 12l2.5 2.5M18 12l-2.5 2.5"/>
+        </svg>
+        <h3 class="svc-name">Special Events</h3>
+        <p class="svc-desc">An event around town or a night out with family and friends. Arrive together, relax, and let us do the driving.</p>
+      </div>
+
+      <div class="svc-card reveal d1">
+        <div class="svc-num">04</div>
+        <svg class="svc-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M24 6l4.5 9.5L39 17l-7.5 7.2L33.3 35 24 30l-9.3 5 1.8-10.8L9 17l10.5-1.5z"/>
+        </svg>
+        <h3 class="svc-name">Homecoming &amp; Prom</h3>
+        <p class="svc-desc">Safe, stylish transportation for the big night — $90 per hour with a 4-hour minimum, plus 20% gratuity.</p>
+      </div>
+
+      <div class="svc-card reveal d2">
+        <div class="svc-num">05</div>
+        <svg class="svc-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M6 30h36l-5 8H11z"/>
+          <path d="M12 30V20h20l6 10M18 20v-6h8v6"/>
+          <path d="M4 42c4 0 4-2 8-2s4 2 8 2 4-2 8-2 4 2 8 2 4-2 8-2"/>
+        </svg>
+        <h3 class="svc-name">Port of Galveston Transfers</h3>
+        <p class="svc-desc">We specialize in transfers to and from the Port of Galveston, so your cruise starts the moment you leave home.</p>
+      </div>
+
+      <div class="svc-card reveal d3">
+        <div class="svc-num">06</div>
+        <svg class="svc-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="10" y="10" width="28" height="28" rx="4"/>
+          <circle cx="18" cy="18" r="1.6" fill="currentColor"/>
+          <circle cx="30" cy="18" r="1.6" fill="currentColor"/>
+          <circle cx="24" cy="24" r="1.6" fill="currentColor"/>
+          <circle cx="18" cy="30" r="1.6" fill="currentColor"/>
+          <circle cx="30" cy="30" r="1.6" fill="currentColor"/>
+        </svg>
+        <h3 class="svc-name">Louisiana Casino Day Trips</h3>
+        <p class="svc-desc">Day trips to the Louisiana casinos in comfort — no designated driver required.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ STATS ══════════════ -->
+<div class="stats-band">
+  <div class="stats-inner">
+    <div class="stat reveal">
+      <div class="stat-n" data-target="125" data-prefix="$">0</div>
+      <div class="stat-l">Hourly Rate</div>
+    </div>
+    <div class="stat reveal d1">
+      <div class="stat-n" data-target="90" data-prefix="$">0</div>
+      <div class="stat-l">Homecoming / Prom Hourly</div>
+    </div>
+    <div class="stat reveal d2">
+      <div class="stat-n" data-target="6">0</div>
+      <div class="stat-l">Passengers Max</div>
+    </div>
+    <div class="stat reveal d3">
+      <div class="stat-n" data-target="2" data-suffix=" hr">0</div>
+      <div class="stat-l">Cancellation Notice</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FLEET ══════════════ -->
+<section id="fleet" class="fleet-wrap">
+  <div class="container">
+    <div class="sec-eyebrow reveal">
+      <span class="sec-rule"></span>
+      <span class="sec-label">Our Fleet</span>
+    </div>
+    <h2 class="sec-h2 reveal">Transportation,<br><em>Done Right</em></h2>
+
+    <div class="fleet-grid">
+      <div class="fleet-card reveal">
+        <img src="Assets/bg2.png" alt="Black Chevrolet Suburban" />
+        <div class="fleet-card-info">
+          <div class="fleet-name">Chevrolet Suburban</div>
+          <div class="fleet-cap">Black Luxury SUV &nbsp;·&nbsp; Accommodates up to 6 Passengers</div>
+          <div class="fleet-specs">
+            <span class="fleet-spec"><strong>$125</strong> / hr · 3 hr minimum</span>
+            <span class="fleet-spec"><strong>$90</strong> / hr Homecoming &amp; Prom · 4 hr minimum</span>
+            <span class="fleet-spec">Plus 20% gratuity</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ WHY US ══════════════ -->
+<section id="about">
+  <div class="container section-pad">
+    <div class="exp-grid">
+      <div class="exp-visual reveal">
+        <div class="exp-frame"></div>
+        <img class="exp-img" src="Assets/image 218.png" alt="Marc Drives Chevrolet Suburban" />
+        <div class="exp-badge">
+          <span class="exp-badge-n">5★</span>
+          <span class="exp-badge-l">Rated<br>Service</span>
+        </div>
+      </div>
+
+      <div class="reveal d2">
+        <div class="sec-eyebrow">
+          <span class="sec-rule"></span>
+          <span class="sec-label">The Marc Drives Difference</span>
+        </div>
+        <h2 class="sec-h2" style="margin-top:1.2rem">
+          More Than a Ride.<br><em>An Experience.</em>
+        </h2>
+        <p style="margin-top:1.4rem; font-size:.8rem; line-height:1.9; color:var(--muted); font-weight:400; max-width:440px">
+          Marc Drives specializes in First Class, reliable and professional private transportation. Whether you need a ride to or from the airport, to an event around town, or a night out with family and friends, leave the worries of driving to us.
+          <br><br>
+          We also specialize in transfers to and from the Port of Galveston, and day trips to the Louisiana casinos.
+        </p>
+        <ul class="features">
+          <li class="feat">
+            <span class="feat-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="feat-body">
+              <strong>First Class &amp; Professional</strong>
+              Courteous, reliable service — and always on time.
+            </span>
+          </li>
+          <li class="feat">
+            <span class="feat-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="feat-body">
+              <strong>Black Chevrolet Suburban</strong>
+              A spacious luxury SUV that accommodates up to 6 passengers.
+            </span>
+          </li>
+          <li class="feat">
+            <span class="feat-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="feat-body">
+              <strong>Port of Galveston Specialists</strong>
+              Cruise transfers to and from the port, door to door.
+            </span>
+          </li>
+          <li class="feat">
+            <span class="feat-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="feat-body">
+              <strong>Clear, Upfront Rates</strong>
+              Published hourly pricing, so you know your rate before you book.
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ TESTIMONIALS ══════════════ -->
+<section class="testi-section" id="reviews">
+  <div class="container">
+    <div class="sec-eyebrow reveal">
+      <span class="sec-rule"></span>
+      <span class="sec-label">Client Stories</span>
+    </div>
+    <h2 class="sec-h2 reveal">What Our Clients<br><em>Are Saying</em></h2>
+
+    <div class="testi-grid">
+      <div class="testi-card reveal d1">
+        <div class="testi-stars">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-quote">"Highly recommend Marc for all of your transportation needs. He has provided airport transportation for my husband and I twice. He is very professional, courteous, and always on time."</p>
+        <div class="testi-author">
+          <div class="testi-avatar"><img src="Assets/avatar-1.png" alt=""/></div>
+          <div>
+            <div class="testi-name">Jonnette Carmouche Davis</div>
+            <div class="testi-loc">Customer</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal d2">
+        <div class="testi-stars">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-quote">"Marc Drives is definitely the only service I'll ever use! He was early to pick us up, had everything (and more). He is the epitome of professionalism. I highly recommend this service to everyone I know!"</p>
+        <div class="testi-author">
+          <div class="testi-avatar"><img src="Assets/avatar-3.png" alt=""/></div>
+          <div>
+            <div class="testi-name">Lauren Meaux Hobbs</div>
+            <div class="testi-loc">Customer</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal d3">
+        <div class="testi-stars">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-quote">"Thank you so much! Landed and in the car in less than 10 minutes! Amazing. Thank you so much! And it was 35% less expensive than my last driver! I'm a Marc Drives customer for life! Thanks Marc!"</p>
+        <div class="testi-author">
+          <div class="testi-avatar"><img src="Assets/avatar-2.png" alt=""/></div>
+          <div>
+            <div class="testi-name">Kenna Rael Mills Shaw</div>
+            <div class="testi-loc">Customer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ RATES & POLICIES ══════════════ -->
+<section id="rates">
+  <div class="container section-pad">
+    <div class="sec-eyebrow reveal">
+      <span class="sec-rule"></span>
+      <span class="sec-label">Rates &amp; Policies</span>
+    </div>
+    <h2 class="sec-h2 reveal">Simple Rates,<br><em>Clear Policies</em></h2>
+
+    <div class="rates-grid">
+      <div class="rates-col reveal d1">
+        <div class="sec-label" style="margin-bottom:1rem">Our Rates</div>
+        <div class="rate-row">
+          <div>
+            <div class="rate-name">Hourly Rate</div>
+            <div class="rate-note">3 hour minimum, plus 20% gratuity</div>
+          </div>
+          <div class="rate-price">$125<small> / hr</small></div>
+        </div>
+        <div class="rate-row">
+          <div>
+            <div class="rate-name">Homecoming / Prom</div>
+            <div class="rate-note">4 hour minimum, plus 20% gratuity</div>
+          </div>
+          <div class="rate-price">$90<small> / hr</small></div>
+        </div>
+        <div class="rate-row">
+          <div>
+            <div class="rate-name">Holidays</div>
+            <div class="rate-note">Holiday rate is 20% greater than the normal fare</div>
+          </div>
+          <div class="rate-price">+20%</div>
+        </div>
+      </div>
+
+      <div class="rates-col reveal d2">
+        <div class="sec-label" style="margin-bottom:1.5rem">Our Policies</div>
+        <ul class="policy-list">
+          <li><strong>Cancellations</strong> must be made more than 2 hours before the scheduled pickup time. Cancellations inside this 2-hour window will be charged the full trip fare.</li>
+          <li><strong>No-show fee:</strong> clients will incur a charge equal to the trip fare.</li>
+          <li><strong>Invoices</strong> should be paid within 24 hours of completed service to avoid additional daily late fees.</li>
+          <li>Marc Drives reserves the right to add extra charges for repairs or cleaning due to customer activity.</li>
+          <li>Marc Drives will use a preferred vendor if its own vehicle is unavailable.</li>
+          <li>Marc Drives assumes no responsibility for items left in the vehicle, or for uncontrollable conditions such as inclement weather or road conditions.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ BOOKING CTA ══════════════ -->
+<section id="book" class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-left reveal">
+      <h2 class="cta-h">Make Your<br><em>Reservations</em></h2>
+      <p class="cta-sub">
+        Send us your date, time, and pickup and drop-off locations, and leave the worries of driving to us.
+      </p>
+
+      <div class="cta-contact">
+        <div class="cta-contact-label">Contact Us</div>
+        <a href="tel:+12819002500" class="cta-phone">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3-8.57A2 2 0 012.17 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/>
+          </svg>
+          281-900-2500
+        </a>
+        <a href="mailto:marcdrives1@gmail.com" class="cta-email">marcdrives1@gmail.com</a>
+      </div>
+    </div>
+
+    <form class="res-form reveal d2" id="res-form" novalidate>
+      <div class="res-grid">
+        <label class="res-field res-full">
+          <span class="res-label">Name <span>*</span></span>
+          <input class="res-input" type="text" name="name" placeholder="Client Name" autocomplete="name" required />
+        </label>
+        <label class="res-field">
+          <span class="res-label">Email <span>*</span></span>
+          <input class="res-input" type="email" name="email" placeholder="Email address" autocomplete="email" required />
+        </label>
+        <label class="res-field">
+          <span class="res-label">Phone Number</span>
+          <input class="res-input" type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" />
+        </label>
+        <label class="res-field">
+          <span class="res-label">Date</span>
+          <input class="res-input" type="date" name="date" />
+        </label>
+        <label class="res-field">
+          <span class="res-label">Time</span>
+          <input class="res-input" type="time" name="pickupTime" />
+        </label>
+        <label class="res-field">
+          <span class="res-label">Pickup Location</span>
+          <input class="res-input" type="text" name="pickupLocation" placeholder="Pickup Location" />
+        </label>
+        <label class="res-field">
+          <span class="res-label">Dropoff Location</span>
+          <input class="res-input" type="text" name="dropoffLocation" placeholder="Dropoff Location" />
+        </label>
+        <label class="res-field res-full">
+          <span class="res-label">Message <span>*</span></span>
+          <textarea class="res-input" name="message" placeholder="Message" rows="4" required></textarea>
+        </label>
+      </div>
+
+      <div class="res-foot">
+        <p class="res-note">Please review our <a href="#rates" class="cta-email" style="margin:0;font-size:inherit">rates &amp; policies</a> before booking.</p>
+        <button type="submit" class="btn-gold">
+          Make Reservation
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+            <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <p class="res-status" id="res-status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo"><img src="Assets/Logo.png" alt="Marc Drives" style="height:28px;width:auto;opacity:.55;" /></div>
+    <div class="footer-copy">© 2026 Marc Drives Private Transportation</div>
+    <ul class="footer-links">
+      <li><a href="#rates">Rates &amp; Policies</a></li>
+      <li><a href="tel:+12819002500">281-900-2500</a></li>
+      <li><a href="mailto:marcdrives1@gmail.com">Email</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+  // ── Sticky nav ─────────────────────────────
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 70);
+  }, { passive: true });
+
+  // ── Mobile menu ────────────────────────────
+  const navToggle = nav.querySelector('.nav-toggle');
+  function setMenu(open) {
+    nav.classList.toggle('open', open);
+    document.body.classList.toggle('menu-open', open);
+    navToggle.setAttribute('aria-expanded', open);
+    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+  navToggle.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+  nav.querySelectorAll('.nav-list a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
+  matchMedia('(min-width: 901px)').addEventListener('change', e => { if (e.matches) setMenu(false); });
+
+  // ── Hero parallax ───────────────────────────
+  const heroImg  = document.querySelector('.hero-img');
+  const heroEl   = document.querySelector('.hero');
+  let   rafPending = false;
+
+  function updateParallax() {
+    const scrolled = window.scrollY;
+    if (scrolled <= heroEl.offsetHeight) {
+      heroImg.style.transform = `translateY(${scrolled * 0.35}px)`;
+    }
+    rafPending = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(updateParallax);
+    }
+  }, { passive: true });
+
+  // ── Reveal on scroll ───────────────────────
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ── Animated counters ──────────────────────
+  const counterIO = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting || e.target.dataset.done) return;
+      e.target.dataset.done = '1';
+      const target = +e.target.dataset.target;
+      const suffix = e.target.dataset.suffix || '';
+      const prefix = e.target.dataset.prefix || '';
+      let cur = 0;
+      const step = target / 55;
+      const t = setInterval(() => {
+        cur = Math.min(cur + step, target);
+        e.target.textContent = prefix + Math.floor(cur) + suffix;
+        if (cur >= target) clearInterval(t);
+      }, 18);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-target]').forEach(el => counterIO.observe(el));
+
+  // ── Reservation form → emailed to Marc via FormSubmit ────
+  const RES_ENDPOINT = 'https://formsubmit.co/ajax/marcdrives1@gmail.com';
+  const resForm   = document.getElementById('res-form');
+  const resStatus = document.getElementById('res-status');
+  const resBtn    = resForm.querySelector('button[type=submit]');
+  const resBtnHTML = resBtn.innerHTML;
+
+  resForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!resForm.checkValidity()) {
+      resForm.reportValidity();
+      return;
+    }
+    const d = Object.fromEntries(new FormData(resForm));
+    const payload = {
+      'Name':             d.name,
+      'Email':            d.email,
+      'Phone':            d.phone || '—',
+      'Date':             d.date || '—',
+      'Time':             d.pickupTime || '—',
+      'Pickup Location':  d.pickupLocation || '—',
+      'Dropoff Location': d.dropoffLocation || '—',
+      'Message':          d.message,
+      _subject:  `New Reservation Request — ${d.name}`,
+      _replyto:  d.email,
+      _template: 'table',
+      _captcha:  'false'
+    };
+
+    resBtn.disabled = true;
+    resBtn.textContent = 'Sending…';
+    resStatus.textContent = '';
+
+    try {
+      const res  = await fetch(RES_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === 'false' || json.success === false) {
+        throw new Error(json.message || 'Failed to send message');
+      }
+      resForm.reset();
+      resStatus.textContent = "Reservation request sent! We'll get back to you soon.";
+    } catch (err) {
+      console.error('Error submitting reservation form:', err);
+      resStatus.textContent = 'Sorry, your request could not be sent. Please call 281-900-2500 or email marcdrives1@gmail.com.';
+    } finally {
+      resBtn.disabled = false;
+      resBtn.innerHTML = resBtnHTML;
+    }
+  });
+</script>
+</body>
+</html>
